@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <!--
+    Quiz Multiplayer - Segurança do Trabalho
+    Desenvolvido por John Santos v.001 2025
+    jlenon.32@outlook.com
+  -->
+  <title>Quiz Multiplayer - Segurança do Trabalho</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 700px;
+      margin: 20px auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .answers li {
+      background: #2d6a4f;
+      color: white;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+    .answers li:hover {
+      background-color: #1b4f34;
+    }
+    .answers li .letter {
+      font-weight: bold;
+      margin-right: 10px;
+      color: #ffd166;
+      min-width: 30px;
+      display: inline-block;
+    }
+    .btn {
+      background-color: #40916c;
+      color: white;
+      padding: 10px 20px;
+      margin: 10px 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #2d6a4f;
+    }
+    .btn-danger {
+      background-color: #ef5350;
+    }
+    .btn-danger:hover {
+      background-color: #d32f2f;
+    }
+    .correct {
+      background-color: #81c784 !important;
+      animation: pulseCorrect 0.5s ease;
+    }
+    .wrong {
+      background-color: #ef5350 !important;
+    }
+    #feedback {
+      font-weight: bold;
+      font-size: 1.2em;
+      margin: 15px 0;
+      color: #2d6a4f;
+      min-height: 60px;
+    }
+    #ranking-list {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0;
+    }
+    #ranking-list li {
+      background-color: #f0f0f0;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .rank {
+      font-weight: bold;
+      color: #2d6a4f;
+      width: 40px;
+    }
+    .player-name {
+      flex-grow: 1;
+      text-align: left;
+      padding: 0 15px;
+    }
+    .player-score {
+      font-weight: bold;
+      width: 80px;
+    }
+    @keyframes pulseCorrect {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    #progress-container {
+      width: 100%;
+      background: #e0e0e0;
+      border-radius: 5px;
+      margin: 20px 0;
+    }
+    #progress-bar {
+      height: 10px;
+      background: #2d6a4f;
+      border-radius: 5px;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    #timer {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #2d6a4f;
+      margin: 10px 0;
+    }
+    #player-count {
+      font-style: italic;
+      color: #666;
+      margin: 10px 0;
+    }
+    input[type="text"] {
+      padding: 10px;
+      width: 80%;
+      max-width: 300px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      margin: 0 auto;
+      display: block;
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
+    .question-counter {
+      margin: 10px 0;
+      color: #666;
+    }
+    .admin-controls {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color: white;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 80%;
+      max-width: 400px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .modal-title {
+      font-size: 1.3em;
+      margin-bottom: 15px;
+      color: #2d6a4f;
+      text-align: center;
+    }
+    .modal-input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      display: block;
+    }
+    .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 20px;
+      gap: 10px;
+    }
+    #password-error {
+      color: #ef5350;
+      display: none;
+      text-align: center;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+	<!DOCTYPE html>
+<html>
+<script>
+  const SENHA_CORRETA = "1402"; // Altere aqui!
+  let tentativa = prompt("Digite a senha:");
+  if (tentativa !== SENHA_CORRETA) {
+    alert("Acesso negado!");
+    window.close();
+  }
+</script>
+<body>
+  <!-- Seu conteúdo aqui -->
+</body>
+</html>
+  <!-- Tela inicial -->
+  <div class="container" id="start-screen">
+    <h1>Quiz Multiplayer - Segurança do Trabalho</h1>
+    <p>Teste seus conhecimentos sobre normas e práticas de segurança no trabalho</p>
+    <input type="text" id="player-name" placeholder="Digite seu nome" maxlength="20">
+    <br><br>
+    <button class="btn" id="start-btn">Começar Quiz</button>
+    <button class="btn" id="view-ranking-btn">Ver Ranking</button>
+    <div id="player-count">Conectando ao servidor...</div>
+  </div>
+
+  <!-- Tela do quiz -->
+  <div class="container hidden" id="quiz-screen">
+    <div class="question-counter" id="question-counter"></div>
+    <div id="question-text"></div>
+    <ul class="answers" id="answers-list">
+      <li onclick="checkAnswer(0)"><span class="letter">A)</span> <span class="answer-text"></span></li>
+      <li onclick="checkAnswer(1)"><span class="letter">B)</span> <span class="answer-text"></span></li>
+      <li onclick="checkAnswer(2)"><span class="letter">C)</span> <span class="answer-text"></span></li>
+      <li onclick="checkAnswer(3)"><span class="letter">D)</span> <span class="answer-text"></span></li>
+    </ul>
+    <div id="progress-container">
+      <div id="progress-bar"></div>
+    </div>
+    <div id="timer">30</div>
+    <div id="feedback"></div>
+    <button class="btn hidden" id="next-btn">Próxima Pergunta</button>
+  </div>
+
+  <!-- Tela de resultados -->
+  <div class="container hidden" id="result-screen">
+    <h2>Seu Resultado</h2>
+    <div id="final-score"></div>
+    <div id="result-message"></div>
+    <button class="btn" id="restart-btn">Jogar Novamente</button>
+    <button class="btn" id="ranking-btn">Ver Ranking</button>
+  </div>
+
+  <!-- Tela de ranking -->
+  <div class="container hidden" id="ranking-screen">
+    <h2>Ranking Global</h2>
+    <div id="ranking-player-count"></div>
+    <ul id="ranking-list"></ul>
+    <button class="btn" id="back-home-btn">Voltar ao Início</button>
+    <div class="admin-controls">
+      <button class="btn btn-danger" id="clear-ranking-btn">Limpar Ranking</button>
+    </div>
+  </div>
+
+  <!-- Modal de senha -->
+  <div id="password-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title">Digite a senha de administrador</div>
+      <input type="password" id="admin-password" class="modal-input" placeholder="Senha">
+      <div id="password-error">Senha incorreta!</div>
+      <div class="modal-buttons">
+        <button class="btn modal-btn" id="cancel-clear-btn">Cancelar</button>
+        <button class="btn btn-danger modal-btn" id="confirm-clear-btn">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script>
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJy86hyJqJYWwdyaFawbgtDK1TqaKOsvQ",
+      authDomain: "quizseguranca-53ad9.firebaseapp.com",
+      databaseURL: "https://quizseguranca-53ad9-default-rtdb.firebaseio.com",
+      projectId: "quizseguranca-53ad9",
+      storageBucket: "quizseguranca-53ad9.firebasestorage.app",
+      messagingSenderId: "581955904879",
+      appId: "1:581955904879:web:d5fef3b3ccaa4d891f749a"
+    };
+
+    // Inicializa o Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Variáveis do jogo
+    let playerId;
+    let playerName = "";
+    let currentQuestion = 0;
+    let score = 0;
+    let timer;
+    const questionTime = 30;
+    let timeLeft = questionTime;
+    let playerRef;
+    let onlinePlayers = 0;
+    const ADMIN_PASSWORD = "seguranca123";
+
+    // Perguntas sobre Segurança do Trabalho (20 questões difíceis)
+    const questions = [
+      {
+        question: "Qual é o valor máximo permitido para exposição ao ruído contínuo ou intermitente de 85 dB(A) por 8 horas diárias, segundo a NHO 01?",
+        answers: [
+          "Não há limite seguro para essa exposição",
+          "É o limite máximo permitido sem proteção auditiva",
+          "Pode ser excedido desde que com uso de EPI",
+          "Deve ser reduzido imediatamente para 80 dB(A)"
+        ],
+        correctAnswer: 1,
+        explanation: "Segundo a NHO 01 da Fundacentro, 85 dB(A) por 8h é o limite máximo permitido, acima do qual é obrigatório o uso de proteção auditiva."
+      },
+      {
+        question: "Qual NR estabelece os requisitos para trabalho em espaços confinados?",
+        answers: [
+          "NR 06 - EPI",
+          "NR 18 - Construção Civil",
+          "NR 33 - Espaços Confinados",
+          "NR 35 - Trabalho em Altura"
+        ],
+        correctAnswer: 2,
+        explanation: "A NR 33 é específica para trabalhos em espaços confinados, estabelecendo requisitos para identificação e controle de riscos."
+      },
+      {
+        question: "Qual a distância mínima que um guarda-corpo deve estar da borda desprotegida em trabalhos em altura?",
+        answers: [
+          "0,5 metros",
+          "0,7 metros",
+          "1,0 metro",
+          "1,2 metros"
+        ],
+        correctAnswer: 1,
+        explanation: "Conforme NR 18.13.5, o guarda-corpo deve ser instalado a 0,70m da borda desprotegida."
+      },
+      {
+        question: "Qual a classificação do risco elétrico para atividades com tensão igual ou superior a 1000V?",
+        answers: [
+          "Risco leve",
+          "Risco moderado",
+          "Risco grave",
+          "Risco intolerável"
+        ],
+        correctAnswer: 3,
+        explanation: "Conforme NR 10, tensões ≥1000V são classificadas como risco intolerável, exigindo medidas rigorosas de controle."
+      },
+      {
+        question: "Qual o fator de proteção mínimo que um respirador PFF2 deve proporcionar?",
+        answers: [
+          "5 vezes o limite de exposição",
+          "10 vezes o limite de exposição",
+          "50 vezes o limite de exposição",
+          "100 vezes o limite de exposição"
+        ],
+        correctAnswer: 1,
+        explanation: "Respiradores PFF2 devem proporcionar fator de proteção mínimo de 10x o limite de exposição (ABNT NBR 13698)."
+      },
+      {
+        question: "Qual a frequência mínima para inspeção de equipamentos de proteção contra quedas?",
+        answers: [
+          "A cada 3 meses",
+          "A cada 6 meses",
+          "A cada 12 meses",
+          "Sempre antes do uso"
+        ],
+        correctAnswer: 3,
+        explanation: "NR 35 estabelece que equipamentos contra quedas devem ser inspecionados sempre antes do uso."
+      },
+      {
+        question: "Qual a concentração máxima permitida de monóxido de carbono (CO) para exposição de 8 horas?",
+        answers: [
+          "10 ppm",
+          "25 ppm",
+          "39 ppm",
+          "50 ppm"
+        ],
+        correctAnswer: 2,
+        explanation: "O limite de tolerância para CO é 39 ppm para jornada de 8h (Anexo 11 da NR 15)."
+      },
+      {
+        question: "Qual a primeira medida em caso de acidente com exposição a material biológico?",
+        answers: [
+          "Notificar o empregador",
+          "Lavar o local com água e sabão",
+          "Procurar atendimento médico",
+          "Preencher a CAT"
+        ],
+        correctAnswer: 1,
+        explanation: "A primeira medida é lavar abundantemente com água e sabão, conforme protocolos de biossegurança."
+      },
+      {
+        question: "Qual a cor padrão de mangueiras para combate a incêndio classe B?",
+        answers: [
+          "Vermelha",
+          "Amarela",
+          "Preta",
+          "Azul"
+        ],
+        correctAnswer: 0,
+        explanation: "Segundo NBR 12693, mangueiras para classe B (líquidos inflamáveis) devem ser vermelhas com faixas amarelas."
+      },
+      {
+        question: "Qual a inclinação máxima permitida para escadas portáteis?",
+        answers: [
+          "45°",
+          "60°",
+          "75°",
+          "80°"
+        ],
+        correctAnswer: 2,
+        explanation: "NR 18.13.8 estabelece inclinação máxima de 75° para escadas portáteis."
+      },
+      {
+        question: "Qual a distância mínima que um talabarte deve ter do ponto de ancoragem?",
+        answers: [
+          "0,5 metro",
+          "1,0 metro",
+          "1,5 metros",
+          "Não há distância mínima"
+        ],
+        correctAnswer: 2,
+        explanation: "NR 35 recomenda talabarte com mínimo 1,5m para permitir movimento sem risco de queda."
+      },
+      {
+        question: "Qual o tempo máximo de exposição para vibração mão-braço com aceleração de 5 m/s²?",
+        answers: [
+          "2 horas",
+          "4 horas",
+          "6 horas",
+          "8 horas"
+        ],
+        correctAnswer: 1,
+        explanation: "Conforme NHO 09 da Fundacentro, para 5 m/s² o tempo máximo é 4h diárias."
+      },
+      {
+        question: "Qual a pressão máxima para sistemas de ar comprimido de limpeza?",
+        answers: [
+          "1,0 bar (14,5 psi)",
+          "2,0 bar (29 psi)",
+          "3,0 bar (43,5 psi)",
+          "7,0 bar (101,5 psi)"
+        ],
+        correctAnswer: 1,
+        explanation: "NR 12 estabelece que a pressão para limpeza não pode exceder 2,0 bar (29 psi)."
+      },
+      {
+        question: "Qual a resistência mínima para um cinto de segurança tipo paraquedista?",
+        answers: [
+          "1500 kgf",
+          "2000 kgf",
+          "2500 kgf",
+          "3000 kgf"
+        ],
+        correctAnswer: 0,
+        explanation: "NR 35 exige que cintos suportem no mínimo 1500 kgf (15 kN)."
+      },
+      {
+        question: "Qual a iluminância mínima para trabalhos com percepção de detalhes médios?",
+        answers: [
+          "100 lux",
+          "200 lux",
+          "300 lux",
+          "500 lux"
+        ],
+        correctAnswer: 3,
+        explanation: "Conforme NBR ISO/CIE 8995-1, trabalhos com detalhes médios exigem ≥500 lux."
+      },
+      {
+        question: "Qual a classificação para laboratórios que manipulam microrganismos classe de risco 2?",
+        answers: [
+          "NB-1",
+          "NB-2",
+          "NB-3",
+          "NB-4"
+        ],
+        correctAnswer: 1,
+        explanation: "Laboratórios NB-2 são para microrganismos classe de risco 2 (ABNT NBR 12188)."
+      },
+      {
+        question: "Qual a distância mínima entre ponto de operação e zona de perigo em máquinas?",
+        answers: [
+          "250 mm",
+          "500 mm",
+          "750 mm",
+          "1000 mm"
+        ],
+        correctAnswer: 0,
+        explanation: "NR 12 estabelece distância mínima de 250mm para garantir segurança do operador."
+      },
+      {
+        question: "Qual o tempo máximo para evacuação de um prédio de escritórios?",
+        answers: [
+          "1 minuto",
+          "3 minutos",
+          "5 minutos",
+          "10 minutos"
+        ],
+        correctAnswer: 1,
+        explanation: "NBR 9077 estabelece tempo máximo de 3 minutos para edifícios de escritórios."
+      },
+      {
+        question: "Qual a concentração máxima de oxigênio em atmosfera deficiente?",
+        answers: [
+          "10%",
+          "15%",
+          "19,5%",
+          "23,5%"
+        ],
+        correctAnswer: 2,
+        explanation: "Atmosferas com <19,5% de O2 são consideradas deficientes (NR 33)."
+      },
+      {
+        question: "Qual o fator de proteção mínimo para proteção contra aerossóis radioativos?",
+        answers: [
+          "FP 10",
+          "FP 50",
+          "FP 100",
+          "FP 1000"
+        ],
+        correctAnswer: 3,
+        explanation: "Para aerossóis radioativos é exigido FP mínimo de 1000 (normas CNEN)."
+      }
+    ];
+
+
+    // Inicialização do jogo
+    document.addEventListener('DOMContentLoaded', () => {
+      playerId = generatePlayerId();
+      setupEventListeners();
+      monitorOnlinePlayers();
+      updateRanking();
+      setupPasswordModal();
+    });
+
+    // Gera ID único para o jogador
+    function generatePlayerId() {
+      return 'xxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    // Configura listeners dos botões
+    function setupEventListeners() {
+      document.getElementById('start-btn').addEventListener('click', startQuiz);
+      document.getElementById('view-ranking-btn').addEventListener('click', showRanking);
+      document.getElementById('next-btn').addEventListener('click', nextQuestion);
+      document.getElementById('restart-btn').addEventListener('click', restartQuiz);
+      document.getElementById('ranking-btn').addEventListener('click', showRanking);
+      document.getElementById('back-home-btn').addEventListener('click', backToHome);
+    }
+
+    // Monitora jogadores online
+    function monitorOnlinePlayers() {
+      const connectedRef = database.ref('.info/connected');
+      playerRef = database.ref('players/' + playerId);
+      
+      connectedRef.on('value', (snap) => {
+        if (snap.val() === true) {
+          // Atualiza status do jogador
+          playerRef.onDisconnect().remove();
+          updatePlayerStatus();
+        }
+      });
+
+      // Conta jogadores online
+      database.ref('players').on('value', (snapshot) => {
+        onlinePlayers = snapshot.numChildren();
+        document.getElementById('player-count').textContent = 
+          `${onlinePlayers} jogador(es) online`;
+        document.getElementById('ranking-player-count').textContent = 
+          `${onlinePlayers} jogador(es) online`;
+      });
+    }
+
+    // Atualiza status do jogador no Firebase
+    function updatePlayerStatus() {
+      if (playerName) {
+        playerRef.set({
+          name: playerName,
+          online: true,
+          lastActive: firebase.database.ServerValue.TIMESTAMP
+        });
+      }
+    }
+
+    // Inicia o quiz
+    function startQuiz() {
+      playerName = document.getElementById('player-name').value.trim();
+      if (!playerName) {
+        alert('Por favor, digite seu nome!');
+        return;
+      }
+
+      updatePlayerStatus();
+      
+      // Reinicia variáveis do jogo
+      currentQuestion = 0;
+      score = 0;
+      timeLeft = questionTime;
+      
+      // Mostra tela do quiz
+      document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+      
+      loadQuestion();
+      startTimer();
+    }
+
+    // Carrega a pergunta atual
+    function loadQuestion() {
+      const question = questions[currentQuestion];
+      document.getElementById('question-text').textContent = question.question;
+      document.getElementById('question-counter').textContent = 
+        `Pergunta ${currentQuestion + 1} de ${questions.length}`;
+      
+      const answers = document.querySelectorAll('#answers-list li');
+      question.answers.forEach((answer, index) => {
+        answers[index].querySelector('.answer-text').textContent = answer;
+        answers[index].classList.remove('correct', 'wrong');
+      });
+      
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('next-btn').classList.add('hidden');
+      resetProgressBar();
+    }
+
+    // Inicia o timer para a pergunta
+    function startTimer() {
+      clearInterval(timer);
+      timeLeft = questionTime;
+      document.getElementById('timer').textContent = timeLeft;
+      
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').textContent = timeLeft;
+        updateProgressBar();
+        
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          handleTimeOut();
+        }
+      }, 1000);
+    }
+
+    // Atualiza a barra de progresso
+    function updateProgressBar() {
+      const progress = ((questionTime - timeLeft) / questionTime) * 100;
+      document.getElementById('progress-bar').style.width = `${progress}%`;
+    }
+
+    // Reseta a barra de progresso
+    function resetProgressBar() {
+      document.getElementById('progress-bar').style.width = '0%';
+    }
+
+    // Tempo esgotado
+    function handleTimeOut() {
+      document.getElementById('feedback').textContent = 'Tempo esgotado!';
+      document.getElementById('next-btn').classList.remove('hidden');
+      highlightCorrectAnswer();
+    }
+
+    // Verifica resposta selecionada
+    function checkAnswer(answerIndex) {
+      clearInterval(timer);
+      const question = questions[currentQuestion];
+      const isCorrect = (answerIndex === question.correctAnswer);
+      
+      // Destaca visualmente as respostas
+      highlightAnswers(answerIndex, question.correctAnswer);
+      
+      if (isCorrect) {
+        score++;
+        document.getElementById('feedback').innerHTML = 
+          `<span style="color: #2d6a4f;">✓ Correto!</span><br>${question.explanation}`;
+      } else {
+        document.getElementById('feedback').innerHTML = 
+          `<span style="color: #ef5350;">✗ Incorreto!</span> A resposta correta é <strong>${String.fromCharCode(65 + question.correctAnswer)}) ${question.answers[question.correctAnswer]}</strong><br>${question.explanation}`;
+      }
+      
+      document.getElementById('next-btn').classList.remove('hidden');
+    }
+
+    // Destaca respostas corretas/incorretas
+    function highlightAnswers(selectedIndex, correctIndex) {
+      const answers = document.querySelectorAll('#answers-list li');
+      
+      answers.forEach((answer, index) => {
+        if (index === correctIndex) {
+          answer.classList.add('correct');
+        } else if (index === selectedIndex && index !== correctIndex) {
+          answer.classList.add('wrong');
+        }
+      });
+    }
+
+    // Destaca apenas a resposta correta (para quando o tempo acaba)
+    function highlightCorrectAnswer() {
+      const question = questions[currentQuestion];
+      const answers = document.querySelectorAll('#answers-list li');
+      answers[question.correctAnswer].classList.add('correct');
+    }
+
+    // Próxima pergunta
+    function nextQuestion() {
+      currentQuestion++;
+      
+      if (currentQuestion < questions.length) {
+        loadQuestion();
+        startTimer();
+      } else {
+        endQuiz();
+      }
+    }
+
+    // Finaliza o quiz
+    function endQuiz() {
+      clearInterval(timer);
+      saveScore();
+      
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.remove('hidden');
+      
+      const percentage = Math.round((score / questions.length) * 100);
+      document.getElementById('final-score').textContent = 
+        `${playerName}, você acertou ${score} de ${questions.length} (${percentage}%)`;
+      
+      // Mensagem personalizada baseada no desempenho
+      let message;
+      if (percentage >= 90) {
+        message = "Excelente! Você é um expert em Segurança do Trabalho!";
+      } else if (percentage >= 70) {
+        message = "Muito bom! Seu conhecimento é acima da média.";
+      } else if (percentage >= 50) {
+        message = "Bom! Mas há espaço para melhorar seu conhecimento.";
+      } else {
+        message = "Estude mais as normas de segurança para se proteger melhor!";
+      }
+      
+      document.getElementById('result-message').textContent = message;
+    }
+
+    // Salva a pontuação no Firebase
+    function saveScore() {
+      database.ref('scores/' + playerId).set({
+        name: playerName,
+        score: score,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      });
+    }
+
+    // Atualiza o ranking
+    function updateRanking() {
+      database.ref('scores').orderByChild('score').limitToLast(10).on('value', (snapshot) => {
+        const scores = [];
+        snapshot.forEach((childSnapshot) => {
+          scores.push(childSnapshot.val());
+        });
+        
+        // Ordena do maior para o menor
+        scores.sort((a, b) => b.score - a.score);
+        
+        // Atualiza a exibição
+        const rankingList = document.getElementById('ranking-list');
+        rankingList.innerHTML = '';
+        
+        scores.forEach((player, index) => {
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <span class="rank">${index + 1}º</span>
+            <span class="player-name">${player.name}</span>
+            <span class="player-score">${player.score} pts</span>
+          `;
+          rankingList.appendChild(li);
+        });
+      });
+    }
+
+    // Mostra tela de ranking
+    function showRanking() {
+      document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.add('hidden');
+      document.getElementById('result-screen').classList.add('hidden');
+      document.getElementById('ranking-screen').classList.remove('hidden');
+      
+      updateRanking();
+    }
+
+    // Reinicia o quiz
+    function restartQuiz() {
+      document.getElementById('result-screen').classList.add('hidden');
+      document.getElementById('quiz-screen').classList.remove('hidden');
+      
+      currentQuestion = 0;
+      score = 0;
+      loadQuestion();
+      startTimer();
+    }
+
+    // Volta para a tela inicial
+    function backToHome() {
+      document.getElementById('ranking-screen').classList.add('hidden');
+      document.getElementById('start-screen').classList.remove('hidden');
+    }
+    // Funções para limpar ranking
+    function clearRanking() {
+      document.getElementById('password-modal').style.display = 'block';
+      document.getElementById('admin-password').focus();
+      document.getElementById('password-error').style.display = 'none';
+    }
+
+    function setupPasswordModal() {
+      document.getElementById('cancel-clear-btn').addEventListener('click', () => {
+        document.getElementById('password-modal').style.display = 'none';
+      });
+
+      document.getElementById('confirm-clear-btn').addEventListener('click', verifyPassword);
+
+      document.getElementById('admin-password').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') verifyPassword();
+      });
+    }
+
+    function verifyPassword() {
+      const password = document.getElementById('admin-password').value;
+      if (password === ADMIN_PASSWORD) {
+        document.getElementById('password-modal').style.display = 'none';
+        if (confirm('Tem certeza que deseja limpar TODOS os resultados do ranking?')) {
+          database.ref('scores').remove()
+            .then(() => {
+              alert('Ranking limpo com sucesso!');
+              updateRanking();
+            })
+            .catch((error) => {
+              alert('Erro ao limpar ranking: ' + error.message);
+            });
+        }
+      } else {
+        document.getElementById('password-error').style.display = 'block';
+        document.getElementById('admin-password').value = '';
+        document.getElementById('admin-password').focus();
+      }
+    }
+
+    // Atualizar event listeners
+    function setupEventListeners() {
+      document.getElementById('start-btn').addEventListener('click', startQuiz);
+      document.getElementById('view-ranking-btn').addEventListener('click', showRanking);
+      document.getElementById('next-btn').addEventListener('click', nextQuestion);
+      document.getElementById('restart-btn').addEventListener('click', restartQuiz);
+      document.getElementById('ranking-btn').addEventListener('click', showRanking);
+      document.getElementById('back-home-btn').addEventListener('click', backToHome);
+      document.getElementById('clear-ranking-btn').addEventListener('click', clearRanking);
+    }
+  </script>
+</body>
+</html>
