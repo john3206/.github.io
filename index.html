@@ -208,9 +208,7 @@
   </style>
 </head>
 <body>
-	<!DOCTYPE html>
-<html>
-<script>
+	<script>
   const SENHA_CORRETA = "1402"; // Altere aqui!
   let tentativa = prompt("Digite a senha:");
   if (tentativa !== SENHA_CORRETA) {
@@ -218,10 +216,6 @@
     window.close();
   }
 </script>
-<body>
-  <!-- Seu conteúdo aqui -->
-</body>
-</html>
   <!-- Tela inicial -->
   <div class="container" id="start-screen">
     <h1>Quiz Multiplayer - Segurança do Trabalho</h1>
@@ -315,6 +309,7 @@
     let playerRef;
     let onlinePlayers = 0;
     const ADMIN_PASSWORD = "seguranca123";
+    let answerSelected = false; // Controla se uma resposta já foi selecionada
 
     // Perguntas sobre Segurança do Trabalho (20 questões difíceis)
     const questions = [
@@ -540,7 +535,6 @@
       }
     ];
 
-
     // Inicialização do jogo
     document.addEventListener('DOMContentLoaded', () => {
       playerId = generatePlayerId();
@@ -567,6 +561,7 @@
       document.getElementById('restart-btn').addEventListener('click', restartQuiz);
       document.getElementById('ranking-btn').addEventListener('click', showRanking);
       document.getElementById('back-home-btn').addEventListener('click', backToHome);
+      document.getElementById('clear-ranking-btn').addEventListener('click', clearRanking);
     }
 
     // Monitora jogadores online
@@ -617,6 +612,7 @@
       currentQuestion = 0;
       score = 0;
       timeLeft = questionTime;
+      answerSelected = false;
       
       // Mostra tela do quiz
       document.getElementById('start-screen').classList.add('hidden');
@@ -628,6 +624,7 @@
 
     // Carrega a pergunta atual
     function loadQuestion() {
+      answerSelected = false; // Reseta o controle de seleção
       const question = questions[currentQuestion];
       document.getElementById('question-text').textContent = question.question;
       document.getElementById('question-counter').textContent = 
@@ -675,6 +672,7 @@
 
     // Tempo esgotado
     function handleTimeOut() {
+      answerSelected = true; // Marca que uma resposta foi "selecionada" (pelo tempo)
       document.getElementById('feedback').textContent = 'Tempo esgotado!';
       document.getElementById('next-btn').classList.remove('hidden');
       highlightCorrectAnswer();
@@ -682,7 +680,11 @@
 
     // Verifica resposta selecionada
     function checkAnswer(answerIndex) {
+      if (answerSelected) return; // Não permite nova seleção se já escolheu
+      
+      answerSelected = true; // Marca que uma resposta foi selecionada
       clearInterval(timer);
+      
       const question = questions[currentQuestion];
       const isCorrect = (answerIndex === question.correctAnswer);
       
@@ -813,6 +815,7 @@
       
       currentQuestion = 0;
       score = 0;
+      answerSelected = false;
       loadQuestion();
       startTimer();
     }
@@ -822,6 +825,7 @@
       document.getElementById('ranking-screen').classList.add('hidden');
       document.getElementById('start-screen').classList.remove('hidden');
     }
+
     // Funções para limpar ranking
     function clearRanking() {
       document.getElementById('password-modal').style.display = 'block';
@@ -860,17 +864,6 @@
         document.getElementById('admin-password').value = '';
         document.getElementById('admin-password').focus();
       }
-    }
-
-    // Atualizar event listeners
-    function setupEventListeners() {
-      document.getElementById('start-btn').addEventListener('click', startQuiz);
-      document.getElementById('view-ranking-btn').addEventListener('click', showRanking);
-      document.getElementById('next-btn').addEventListener('click', nextQuestion);
-      document.getElementById('restart-btn').addEventListener('click', restartQuiz);
-      document.getElementById('ranking-btn').addEventListener('click', showRanking);
-      document.getElementById('back-home-btn').addEventListener('click', backToHome);
-      document.getElementById('clear-ranking-btn').addEventListener('click', clearRanking);
     }
   </script>
 </body>
