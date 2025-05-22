@@ -563,7 +563,7 @@
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.7; }
-            100% { opacity: 1; }
+            100% { opacity: 1;
         }
 
         @media (max-width: 768px) {
@@ -676,6 +676,7 @@
             <div id="adminRulesList" style="margin-bottom:20px;">
                 <!-- Lista de regras será gerada aqui -->
             </div>
+            <button id="saveSettingsBtn" style="width:100%; padding:10px; background:#27ae60; color:white; border:none; border-radius:5px; cursor:pointer; margin-bottom:10px;">Salvar Configurações</button>
             <button id="clearRankingBtn" style="width:100%; padding:10px; background:#e74c3c; color:white; border:none; border-radius:5px; cursor:pointer; margin-bottom:10px;">Limpar Ranking</button>
             <button id="closeAdminBtn" style="width:100%; padding:10px; background:#2c3e50; color:white; border:none; border-radius:5px; cursor:pointer;">Fechar</button>
         </div>
@@ -719,6 +720,9 @@
         let adminMode = false;
         const CORRECT_PASSWORD = "1303";
         const ADMIN_PASSWORD = "admin123"; // Senha separada para admin
+
+        // Referência para configurações globais
+        const globalSettingsRef = ref(database, 'globalSettings/rulesLockStatus');
 
         // Lista de jogadores
         const players = [
@@ -789,7 +793,7 @@
                     }
                 ],
                 score: 0,
-                unlocked: true // Primeira regra desbloqueada por padrão
+                unlocked: true // Valor padrão inicial
             },
             {
                 id: 2,
@@ -1331,6 +1335,7 @@
                 score: 0,
                 unlocked: false
             }
+       
         ];
 
         // Elementos do DOM
@@ -1366,23 +1371,49 @@
             passwordError: document.getElementById('passwordError'),
             splashScreen: document.getElementById('splash-screen'),
             splashBar: document.getElementById('splash-progress'),
-            splashStatus: document.getElementById('splash-status')
+            splashStatus: document.getElementById('splash-status'),
+            saveSettingsBtn: document.getElementById('saveSettingsBtn')
         };
 
-        // Inicialização do jogo
+        // Inicialização do jogo - MODIFICADA
         function initApp() {
             elements.passwordScreen.style.display = 'flex';
             elements.splashScreen.style.display = 'none';
             
             setupEventListeners();
             
-            // Inicializar dados do jogo
-            gameData.rules = JSON.parse(JSON.stringify(rulesData)); // Deep copy
-            
-            // Verificar dados no console (pode remover depois)
-            console.log('Total de regras carregadas:', gameData.rules.length);
+            // Carrega configurações globais primeiro
+            loadGlobalSettings(() => {
+                // Inicializa dados do jogo após carregar configurações
+                gameData.rules = JSON.parse(JSON.stringify(rulesData));
+                applyGlobalSettings();
+                generateRuleCards();
+            });
+        }
+
+        // NOVA FUNÇÃO para carregar configurações globais
+        function loadGlobalSettings(callback) {
+            onValue(globalSettingsRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const savedSettings = snapshot.val();
+                    rulesData.forEach(rule => {
+                        // Aplica configurações salvas para TODAS as regras
+                        if (savedSettings[rule.id] !== undefined) {
+                            rule.unlocked = savedSettings[rule.id];
+                        }
+                    });
+                }
+                if (callback) callback();
+            });
+        }
+
+        // NOVA FUNÇÃO para aplicar configurações globais
+        function applyGlobalSettings() {
             gameData.rules.forEach(rule => {
-                console.log(`Regra ${rule.id}: ${rule.title} - ${rule.questions.length} perguntas`);
+                const originalRule = rulesData.find(r => r.id === rule.id);
+                if (originalRule) {
+                    rule.unlocked = originalRule.unlocked;
+                }
             });
         }
 
@@ -1403,6 +1434,7 @@
             elements.adminBtn.addEventListener('click', showAdminPasswordPrompt);
             elements.closeAdminBtn.addEventListener('click', closeAdminPanel);
             elements.clearRankingBtn.addEventListener('click', confirmClearRanking);
+            elements.saveSettingsBtn.addEventListener('click', saveGlobalSettings);
         }
 
         function checkPassword() {
@@ -1517,13 +1549,17 @@
             }, { onlyOnce: true });
         }
 
+        // MODIFICADA - Remove o desbloqueio automático da regra 1
         function initializeNewPlayer() {
             gameData.totalScore = 0;
             gameData.rules.forEach(rule => {
                 rule.completed = false;
                 rule.score = 0;
-                rule.unlocked = rule.id === 1; // Apenas a primeira regra desbloqueada inicialmente
+                // Não força mais a regra 1 como desbloqueada
             });
+            
+            // Aplica as configurações globais
+            applyGlobalSettings();
             
             // Salvar jogador no Firebase
             savePlayerData();
@@ -1718,11 +1754,6 @@
             const rule = gameData.rules[gameData.currentRule];
             rule.completed = true;
             
-            // REMOVIDO O DESBLOQUEIO AUTOMÁTICO DA PRÓXIMA REGRA
-            // if (gameData.currentRule < gameData.rules.length - 1) {
-            //    gameData.rules[gameData.currentRule + 1].unlocked = true;
-            // }
-            
             elements.completeMessage.textContent = `Você acertou ${gameData.correctAnswers} de ${rule.questions.length} perguntas!`;
             elements.questionContainer.style.display = 'none';
             elements.phaseComplete.style.display = 'block';
@@ -1741,6 +1772,30 @@
                 rules: gameData.rules,
                 lastUpdated: serverTimestamp()
             });
+        }
+
+        // NOVA FUNÇÃO para salvar configurações globais
+        function saveGlobalSettings() {
+            const settingsToSave = {};
+            
+            gameData.rules.forEach(rule => {
+                settingsToSave[rule.id] = rule.unlocked;
+            });
+            
+            set(globalSettingsRef, settingsToSave)
+                .then(() => {
+                    alert("Configurações salvas com sucesso! Estas alterações afetarão todos os jogadores.");
+                    // Atualiza também a lista original de regras
+                    rulesData.forEach(rule => {
+                        const gameRule = gameData.rules.find(r => r.id === rule.id);
+                        if (gameRule) {
+                            rule.unlocked = gameRule.unlocked;
+                        }
+                    });
+                })
+                .catch((error) => {
+                    alert("Erro ao salvar configurações: " + error.message);
+                });
         }
 
         function updateProgress() {
@@ -1844,7 +1899,13 @@
             document.querySelectorAll('.toggle-rule-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const index = parseInt(e.target.getAttribute('data-index'));
-                    toggleRuleAccess(index);
+                    if (index === 0) { // Regra 1
+                        if (confirm("Tem certeza que deseja alterar o status da primeira regra?")) {
+                            toggleRuleAccess(index);
+                        }
+                    } else {
+                        toggleRuleAccess(index);
+                    }
                 });
             });
             
@@ -1855,7 +1916,7 @@
             if (!adminMode) return;
 
             gameData.rules[index].unlocked = !gameData.rules[index].unlocked;
-            savePlayerData();
+            // Atualiza a exibição sem salvar ainda
             showAdminPanel();
             generateRuleCards();
         }
