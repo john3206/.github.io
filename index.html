@@ -172,6 +172,7 @@
         
         .rule-card.completed {
             border: 3px solid #27ae60;
+            cursor: default;
         }
         
         .rule-number {
@@ -563,7 +564,7 @@
         @keyframes pulse {
             0% { opacity: 1; }
             50% { opacity: 0.7; }
-            100% { opacity: 1;
+            100% { opacity: 1; }
         }
 
         @media (max-width: 768px) {
@@ -1007,7 +1008,7 @@
                             "Pode causar estresse no animal",
                             "Não há impacto, pois o animal está acostumado",
                             "O animal pode se acostumar",
-                            "Nenhuma das alternativas anteriores"
+                            "Nenhuma das alternativas"
                         ],
                         answer: 0
                     },
@@ -1335,7 +1336,6 @@
                 score: 0,
                 unlocked: false
             }
-       
         ];
 
         // Elementos do DOM
@@ -1375,7 +1375,7 @@
             saveSettingsBtn: document.getElementById('saveSettingsBtn')
         };
 
-        // Inicialização do jogo - MODIFICADA
+        // Inicialização do jogo
         function initApp() {
             elements.passwordScreen.style.display = 'flex';
             elements.splashScreen.style.display = 'none';
@@ -1391,13 +1391,12 @@
             });
         }
 
-        // NOVA FUNÇÃO para carregar configurações globais
+        // Carrega configurações globais
         function loadGlobalSettings(callback) {
             onValue(globalSettingsRef, (snapshot) => {
                 if (snapshot.exists()) {
                     const savedSettings = snapshot.val();
                     rulesData.forEach(rule => {
-                        // Aplica configurações salvas para TODAS as regras
                         if (savedSettings[rule.id] !== undefined) {
                             rule.unlocked = savedSettings[rule.id];
                         }
@@ -1407,7 +1406,7 @@
             });
         }
 
-        // NOVA FUNÇÃO para aplicar configurações globais
+        // Aplica configurações globais
         function applyGlobalSettings() {
             gameData.rules.forEach(rule => {
                 const originalRule = rulesData.find(r => r.id === rule.id);
@@ -1549,13 +1548,11 @@
             }, { onlyOnce: true });
         }
 
-        // MODIFICADA - Remove o desbloqueio automático da regra 1
         function initializeNewPlayer() {
             gameData.totalScore = 0;
             gameData.rules.forEach(rule => {
                 rule.completed = false;
                 rule.score = 0;
-                // Não força mais a regra 1 como desbloqueada
             });
             
             // Aplica as configurações globais
@@ -1576,16 +1573,20 @@
                 const ruleCard = document.createElement('div');
                 ruleCard.className = 'rule-card';
 
-                // Verificar se a regra está disponível
-                const isAvailable = rule.unlocked || rule.completed || adminMode;
+                // Verificar se a regra está disponível (desbloqueada E não completada) ou modo admin
+                const isAvailable = (rule.unlocked && !rule.completed) || adminMode;
 
+                if (rule.completed) {
+                    ruleCard.classList.add('completed');
+                }
+                
                 if (isAvailable) {
-                    if (rule.completed) {
-                        ruleCard.classList.add('completed');
-                    }
                     ruleCard.addEventListener('click', () => startGame(index));
-                } else {
+                } else if (!rule.completed) { // Se não estiver completada mas estiver bloqueada
                     ruleCard.classList.add('locked');
+                } else {
+                    // Regra completada - não adiciona evento de clique
+                    ruleCard.style.cursor = 'default';
                 }
 
                 ruleCard.innerHTML = `
@@ -1604,9 +1605,9 @@
         function startGame(ruleIndex) {
             const rule = gameData.rules[ruleIndex];
             
-            // Verificar se a regra pode ser jogada
-            if (!rule.unlocked && !rule.completed && !adminMode) {
-                alert("Esta regra está bloqueada. O administrador precisa desbloqueá-la.");
+            // Verificar se a regra pode ser jogada (desbloqueada e não completada) ou modo admin
+            if ((!rule.unlocked || rule.completed) && !adminMode) {
+                alert("Esta regra está bloqueada ou já foi completada.");
                 return;
             }
 
@@ -1753,6 +1754,8 @@
         function completeRule() {
             const rule = gameData.rules[gameData.currentRule];
             rule.completed = true;
+            // BLOQUEIA A REGRA APÓS CONCLUSÃO
+            rule.unlocked = false;
             
             elements.completeMessage.textContent = `Você acertou ${gameData.correctAnswers} de ${rule.questions.length} perguntas!`;
             elements.questionContainer.style.display = 'none';
@@ -1774,7 +1777,6 @@
             });
         }
 
-        // NOVA FUNÇÃO para salvar configurações globais
         function saveGlobalSettings() {
             const settingsToSave = {};
             
