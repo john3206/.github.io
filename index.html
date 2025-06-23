@@ -172,7 +172,6 @@
         
         .rule-card.completed {
             border: 3px solid #27ae60;
-            cursor: default;
         }
         
         .rule-number {
@@ -794,7 +793,7 @@
                     }
                 ],
                 score: 0,
-                unlocked: true // Valor padrão inicial
+                unlocked: true
             },
             {
                 id: 2,
@@ -863,54 +862,54 @@
                 completed: false,
                 questions: [
                     {
-                        question: "Qual é a primeira atitude ao presenciar um cão se enforcando com a guia?",
+                        question: "Em caso de atropelamento de um pet, qual é a primeira medida que deve ser tomada para garantir a segurança de todos os envolvidos?",
                         options: [
-                            "Puxar com força para soltá-lo",
-                            "Soltar a coleira com calma e verificar respiração",
-                            "Gritar por ajuda",
-                            "Jogar água no animal"
-                        ],
-                        answer: 1
-                    },
-                    {
-                        question: "Um acidente comum em clínicas veterinárias é:",
-                        options: [
-                            "Cães dormindo demais",
-                            "Queda de animais da mesa de atendimento",
-                            "Arranhões em paredes",
-                            "Comer ração de outro animal"
-                        ],
-                        answer: 1
-                    },
-                    {
-                        question: "Para evitar mordidas durante o banho é recomendado:",
-                        options: [
-                            "Usar brinquedos",
-                            "Banhar sempre em grupo",
-                            "Usar focinheira e manter a calma",
-                            "Lavar rapidamente"
+                            "Aplicar imediatamente um torniquete na pata afetada",
+                            "Retirar o animal do local e transportá-lo sem imobilização",
+                            "Verificar sinais vitais e mover o animal apenas se não houver risco de fraturas graves",
+                            "Oferecer água para mantê-lo hidratado antes do transporte"
                         ],
                         answer: 2
                     },
                     {
-                        question: "Um risco ao passear com animais em áreas públicas é:",
+                        question: "Qual é o risco mais comum ao tentar separar uma briga entre dois cães sem técnica adequada?",
                         options: [
-                            "Eles correrem demais",
-                            "Eles fugirem e se perderem ou serem atropelados",
-                            "Encontrarem outros animais",
-                            "Sujarem a rua"
-                        ],
-                        answer: 1
-                    },
-                    {
-                        question: "Para evitar quedas de gatos em clínicas, deve-se:",
-                        options: [
-                            "Deixar as janelas abertas",
-                            "Carregar no colo sem contenção",
-                            "Manter o animal contido em caixa de transporte ou grade",
-                            "Segurar pela pele do pescoço"
+                            "Contaminação por saliva",
+                            "Hemorragia interna no animal contido",
+                            "Mordida do próprio cão que está tentando defender",
+                            "Perda auditiva temporária dos cães devido ao estresse"
                         ],
                         answer: 2
+                    },
+                    {
+                        question: "Um dos erros mais comuns em ambientes de trabalho com pets é:",
+                        options: [
+                            "Alimentar os animais durante o expediente",
+                            "Não registrar as vacinas atualizadas dos pets",
+                            "Circular com os pets soltos em áreas com veículos em movimento",
+                            "Manter os pets em ambientes abertos e ventilados"
+                        ],
+                        answer: 2
+                    },
+                    {
+                        question: "Qual item de uso comum em ambientes com pets representa maior risco de intoxicação se não for armazenado corretamente?",
+                        options: [
+                            "Areia sanitária",
+                            "Brinquedos de borracha",
+                            "Produtos de limpeza com amônia e cloro",
+                            "Ração seca armazenada em potes plásticos"
+                        ],
+                        answer: 2
+                    },
+                    {
+                        question: "Em uma clínica veterinária, qual é o procedimento mais seguro ao conter um gato agressivo para evitar acidentes?",
+                        options: [
+                            "Segurar firmemente pelas patas traseiras",
+                            "Enrolar o animal com uma toalha grossa, deixando apenas a cabeça exposta",
+                            "Usar uma focinheira de cão para limitar seus movimentos",
+                            "Agitar o animal para deixá-lo desorientado e mais fácil de conter"
+                        ],
+                        answer: 1
                     }
                 ],
                 score: 0,
@@ -1008,7 +1007,7 @@
                             "Pode causar estresse no animal",
                             "Não há impacto, pois o animal está acostumado",
                             "O animal pode se acostumar",
-                            "Nenhuma das alternativas"
+                            "Nenhuma das alternativas anteriores"
                         ],
                         answer: 0
                     },
@@ -1375,7 +1374,7 @@
             saveSettingsBtn: document.getElementById('saveSettingsBtn')
         };
 
-        // Inicialização do jogo
+        // Inicialização do jogo - MODIFICADA
         function initApp() {
             elements.passwordScreen.style.display = 'flex';
             elements.splashScreen.style.display = 'none';
@@ -1384,19 +1383,26 @@
             
             // Carrega configurações globais primeiro
             loadGlobalSettings(() => {
-                // Inicializa dados do jogo após carregar configurações
-                gameData.rules = JSON.parse(JSON.stringify(rulesData));
-                applyGlobalSettings();
-                generateRuleCards();
-            });
-        }
+        gameData.rules = JSON.parse(JSON.stringify(rulesData));
+        
+        // Verificação extra ao iniciar
+        gameData.rules.forEach(rule => {
+            if (rule.completed) {
+                rule.unlocked = false; // Bloqueio adicional
+            }
+        });
+        
+        generateRuleCards();
+    });
+}
 
-        // Carrega configurações globais
+        // NOVA FUNÇÃO para carregar configurações globais
         function loadGlobalSettings(callback) {
             onValue(globalSettingsRef, (snapshot) => {
                 if (snapshot.exists()) {
                     const savedSettings = snapshot.val();
                     rulesData.forEach(rule => {
+                        // Aplica configurações salvas para TODAS as regras
                         if (savedSettings[rule.id] !== undefined) {
                             rule.unlocked = savedSettings[rule.id];
                         }
@@ -1406,7 +1412,7 @@
             });
         }
 
-        // Aplica configurações globais
+        // NOVA FUNÇÃO para aplicar configurações globais
         function applyGlobalSettings() {
             gameData.rules.forEach(rule => {
                 const originalRule = rulesData.find(r => r.id === rule.id);
@@ -1514,45 +1520,68 @@
         }
 
         function startGameWithPlayer() {
-            if (!selectedPlayer) return;
-            
-            gameData.currentPlayer = selectedPlayer;
-            elements.playerNameDisplay.textContent = `Jogador: ${selectedPlayer}`;
-            
-            // Gerar um ID único para o jogador
-            gameData.playerId = Date.now() + '-' + selectedPlayer.replace(/\s+/g, '-').toLowerCase();
-            
-            elements.playerModal.style.display = 'none';
-            
-            // Verificar se já existe progresso salvo para este jogador
-            checkSavedProgress();
-        }
+		if (!selectedPlayer) return;
+		
+		gameData.currentPlayer = selectedPlayer;
+		elements.playerNameDisplay.textContent = `Jogador: ${selectedPlayer}`;
+		
+		// Gerar um ID único para o jogador
+		gameData.playerId = Date.now() + '-' + selectedPlayer.replace(/\s+/g, '-').toLowerCase();
+		
+		elements.playerModal.style.display = 'none';
 
-        function checkSavedProgress() {
-            const playerRef = ref(database, 'players/' + gameData.playerId);
-            
-            onValue(playerRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    // Carregar progresso existente
-                    const savedData = snapshot.val();
-                    gameData.totalScore = savedData.totalScore || 0;
-                    gameData.rules = savedData.rules || gameData.rules;
-                    
-                    // Atualizar a exibição
-                    generateRuleCards();
-                    elements.gameScore.textContent = `Pontos: ${gameData.totalScore}`;
-                } else {
-                    // Novo jogador - inicializar dados
-                    initializeNewPlayer();
-                }
-            }, { onlyOnce: true });
-        }
+		// Bloquear todas as regras por padrão
+		gameData.rules.forEach(rule => {
+			rule.unlocked = false;
+		});
 
+		// Checar se há progresso salvo (mantém regras completadas bloqueadas)
+		checkSavedProgress();
+		}
+
+
+		function checkSavedProgress() {
+			const playerRef = ref(database, 'players/' + gameData.playerId);
+
+			onValue(playerRef, (snapshot) => {
+				if (snapshot.exists()) {
+				const savedData = snapshot.val();
+
+				// Atualiza as regras com base no progresso salvo
+				gameData.rules = rulesData.map(defaultRule => {
+					const savedRule = (savedData.rules || []).find(r => r.id === defaultRule.id);
+
+					return {
+						...defaultRule,
+						completed: savedRule?.completed || false,
+						unlocked: false, // 🔒 SEMPRE bloqueado, só o admin libera
+						score: savedRule?.score || 0
+					};
+				});
+
+				gameData.totalScore = savedData.totalScore || 0;
+				generateRuleCards();
+			} else {
+				// Se não existe progresso salvo, bloqueia todas as regras
+				gameData.rules = rulesData.map(rule => ({
+					...rule,
+					unlocked: false, // 🔒 bloqueado por padrão
+					completed: false,
+					score: 0
+				}));
+
+				generateRuleCards();
+			}
+		}, { onlyOnce: true });
+	}
+
+        // MODIFICADA - Remove o desbloqueio automático da regra 1
         function initializeNewPlayer() {
             gameData.totalScore = 0;
             gameData.rules.forEach(rule => {
                 rule.completed = false;
                 rule.score = 0;
+                // Não força mais a regra 1 como desbloqueada
             });
             
             // Aplica as configurações globais
@@ -1567,49 +1596,60 @@
         }
 
         function generateRuleCards() {
-            elements.rulesGrid.innerHTML = '';
+		elements.rulesGrid.innerHTML = '';
 
-            gameData.rules.forEach((rule, index) => {
-                const ruleCard = document.createElement('div');
-                ruleCard.className = 'rule-card';
-
-                // Verificar se a regra está disponível (desbloqueada E não completada) ou modo admin
-                const isAvailable = (rule.unlocked && !rule.completed) || adminMode;
-
-                if (rule.completed) {
-                    ruleCard.classList.add('completed');
-                }
-                
-                if (isAvailable) {
-                    ruleCard.addEventListener('click', () => startGame(index));
-                } else if (!rule.completed) { // Se não estiver completada mas estiver bloqueada
-                    ruleCard.classList.add('locked');
-                } else {
-                    // Regra completada - não adiciona evento de clique
-                    ruleCard.style.cursor = 'default';
-                }
-
-                ruleCard.innerHTML = `
-                    <div class="rule-number">Regra #${rule.id}</div>
-                    <div class="rule-content">
-                        <h3 class="rule-title">${rule.title}</h3>
-                        <p class="rule-description">${rule.description}</p>
-                        ${rule.completed ? `<p class="rule-score">Pontuação: ${rule.score}</p>` : ''}
-                    </div>
-                `;
-
-                elements.rulesGrid.appendChild(ruleCard);
-            });
+		gameData.rules.forEach((rule, index) => {
+        const ruleCard = document.createElement('div');
+        
+        // Verificação principal
+        if (rule.completed) {
+            // REGRA CONCLUÍDA - BLOQUEADA
+            ruleCard.className = 'rule-card locked completed';
+            ruleCard.innerHTML = `
+                <div class="rule-number">Regra #${rule.id} 🔒</div>
+                <div class="rule-content">
+                    <h3 class="rule-title">${rule.title} (Concluída)</h3>
+                    <p class="rule-description">${rule.description}</p>
+                    <p class="rule-score">Pontuação: ${rule.score} pontos</p>
+                </div>
+            `;
+        } 
+        else if (rule.unlocked || adminMode) {
+            // REGRA DISPONÍVEL
+            ruleCard.className = 'rule-card';
+            ruleCard.addEventListener('click', () => startGame(index));
+            ruleCard.innerHTML = `
+                <div class="rule-number">Regra #${rule.id}</div>
+                <div class="rule-content">
+                    <h3 class="rule-title">${rule.title}</h3>
+                    <p class="rule-description">${rule.description}</p>
+                </div>
+            `;
+        } 
+        else {
+            // REGRA BLOQUEADA
+            ruleCard.className = 'rule-card locked';
+            ruleCard.innerHTML = `
+                <div class="rule-number">Regra #${rule.id}</div>
+                <div class="rule-content">
+                    <h3 class="rule-title">${rule.title}</h3>
+                    <p class="rule-description">${rule.description}</p>
+                </div>
+            `;
         }
 
+        elements.rulesGrid.appendChild(ruleCard);
+    });
+}
+
         function startGame(ruleIndex) {
-            const rule = gameData.rules[ruleIndex];
-            
-            // Verificar se a regra pode ser jogada (desbloqueada e não completada) ou modo admin
-            if ((!rule.unlocked || rule.completed) && !adminMode) {
-                alert("Esta regra está bloqueada ou já foi completada.");
-                return;
-            }
+    const rule = gameData.rules[ruleIndex];
+    
+    // Bloqueia definitivamente regras concluídas
+    if (rule.completed) {
+        alert("❌ Esta regra já foi concluída e está bloqueada!");
+        return;
+    }
 
             gameData.currentRule = ruleIndex;
             gameData.currentQuestion = 0;
@@ -1752,31 +1792,53 @@
         }
 
         function completeRule() {
-            const rule = gameData.rules[gameData.currentRule];
-            rule.completed = true;
-            // BLOQUEIA A REGRA APÓS CONCLUSÃO
-            rule.unlocked = false;
+    const rule = gameData.rules[gameData.currentRule];
+    
+    // Marca como concluída e BLOQUEIA permanentemente
+    rule.completed = true;
+    rule.unlocked = false; // 👈 Chave para o bloqueio persistente
+    
+    // Atualiza a pontuação
+    const rulePoints = gameData.correctAnswers * 10;
+	rule.score = rulePoints;
+	gameData.totalScore += rulePoints;
+    
+    // Exibe mensagem de conclusão
+    elements.completeMessage.textContent = `Você acertou ${gameData.correctAnswers} de ${rule.questions.length} perguntas (${rule.score} pontos)`;
+    elements.questionContainer.style.display = 'none';
+    elements.phaseComplete.style.display = 'block';
+    
+    // Salva no Firebase com o bloqueio
+    savePlayerData();
+}
             
-            elements.completeMessage.textContent = `Você acertou ${gameData.correctAnswers} de ${rule.questions.length} perguntas!`;
-            elements.questionContainer.style.display = 'none';
-            elements.phaseComplete.style.display = 'block';
-            
-            // Salvar progresso no Firebase
-            savePlayerData();
-            updateRanking();
+    function savePlayerData() {
+    const playerRef = ref(database, 'players/' + gameData.playerId);
+    
+    // Garante consistência antes de salvar
+    gameData.rules.forEach(rule => {
+        if (rule.completed) {
+            rule.unlocked = false; // Força bloqueio
         }
+    });
+	
+    // Recalcula total somando apenas regras completadas
+	const total = gameData.rules.reduce((acc, rule) => acc + (rule.completed ? rule.score : 0), 0);
+	
+    set(playerRef, {
+        name: gameData.currentPlayer,
+        totalScore: total,
+        rules: gameData.rules.map(rule => ({
+            id: rule.id,
+            completed: rule.completed,
+            unlocked: rule.unlocked,
+            score: rule.score
+        })),
+        lastUpdated: serverTimestamp()
+    });
+}
 
-        function savePlayerData() {
-            const playerRef = ref(database, 'players/' + gameData.playerId);
-            
-            set(playerRef, {
-                name: gameData.currentPlayer,
-                totalScore: gameData.totalScore,
-                rules: gameData.rules,
-                lastUpdated: serverTimestamp()
-            });
-        }
-
+        // NOVA FUNÇÃO para salvar configurações globais
         function saveGlobalSettings() {
             const settingsToSave = {};
             
@@ -1816,54 +1878,65 @@
         }
 
         function loadRanking() {
-            const rankingRef = ref(database, 'players');
+    const rankingRef = ref(database, 'players');
+    
+    onValue(rankingRef, (snapshot) => {
+        const playersMap = new Map();
+        
+        snapshot.forEach(childSnapshot => {
+            const player = childSnapshot.val();
+            const playerName = player.name;
+            const playerScore = player.totalScore || 0;
             
-            onValue(rankingRef, (snapshot) => {
-                rankingData = [];
-                snapshot.forEach(childSnapshot => {
-                    const player = childSnapshot.val();
-                    rankingData.push({
-                        id: childSnapshot.key,
-                        name: player.name,
-                        score: player.totalScore || 0,
-                        rules: player.rules || []
-                    });
+            if (playersMap.has(playerName)) {
+                const existing = playersMap.get(playerName);
+                playersMap.set(playerName, {
+                    ...existing,
+                    score: existing.score + playerScore,
+                    id: childSnapshot.key
                 });
-                
-                // Ordenar por pontuação (decrescente)
-                rankingData.sort((a, b) => b.score - a.score);
-                displayRanking();
-            });
-        }
+            } else {
+                playersMap.set(playerName, {
+                    id: childSnapshot.key,
+                    name: playerName,
+                    score: playerScore,
+                    rules: player.rules || []
+                });
+            }
+        });
+        
+        rankingData = Array.from(playersMap.values()).sort((a, b) => b.score - a.score);
+        displayRanking();
+    });
+}
+        
+       
 
         function displayRanking() {
-            elements.rankingList.innerHTML = '';
+    elements.rankingList.innerHTML = '';
 
-            const jogadoresValidos = rankingData.filter(p => {
-                return p.rules && Array.isArray(p.rules) && p.rules.some(r => r.completed);
-            });
+    if (rankingData.length === 0) {
+        elements.rankingList.innerHTML = '<li>Nenhum jogador no ranking ainda</li>';
+        return;
+    }
 
-            if (jogadoresValidos.length === 0) {
-                elements.rankingList.innerHTML = '<li>Nenhum dado de ranking disponível ainda</li>';
-                return;
-            }
-
-            jogadoresValidos.forEach((player, index) => {
-                const li = document.createElement('li');
-                li.className = 'ranking-item';
-                if (gameData.playerId && player.id === gameData.playerId) {
-                    li.classList.add('current-player');
-                }
-
-                li.innerHTML = `
-                    <span class="ranking-position">${index + 1}º</span>
-                    <span class="ranking-player">${player.name}</span>
-                    <span class="ranking-score">${player.score} pts</span>
-                `;
-
-                elements.rankingList.appendChild(li);
-            });
+    rankingData.forEach((player, index) => {
+        const li = document.createElement('li');
+        li.className = 'ranking-item';
+        
+        if (gameData.playerId && player.id === gameData.playerId) {
+            li.classList.add('current-player');
         }
+
+        li.innerHTML = `
+            <span class="ranking-position">${index + 1}º</span>
+            <span class="ranking-player">${player.name}</span>
+            <span class="ranking-score">${player.score} pts</span>
+        `;
+
+        elements.rankingList.appendChild(li);
+    });
+}
 
         function updateRanking() {
             // O ranking é automaticamente atualizado pelo Firebase quando salvamos os dados do jogador
